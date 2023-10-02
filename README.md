@@ -9,3 +9,8 @@ This allows for much more easily writing the Elven languages of Quenya and Sinda
 ## Installation
 
 *TODO
+
+
+## Note
+
+This project is in a very early state, and is mostly based on [this tutorial](https://www.fcitx-im.org/wiki/Develop_an_simple_input_method) because I have no idea what I am doing.
