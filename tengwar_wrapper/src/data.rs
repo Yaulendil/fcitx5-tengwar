@@ -11,6 +11,19 @@ pub struct TengwarCfg {
     ///     form where appropriate.
     pub alt_rince: bool,
 
+    /// If this is `true`, any tengwa that does not carry a tehta will be marked
+    ///     with a dot.
+    pub dot_plain: bool,
+
+    /// If this is `true`, the A-tehta will not be used.
+    pub elide_a: bool,
+
+    /// If this is `true`, the A-tehta will not be elided initially.
+    pub keep_a_init: bool,
+
+    /// If this is `true`, the A-tehta will not be elided when long.
+    pub keep_a_long: bool,
+
     /// If this is `true`, the short carrier will be replaced by its ligating
     ///     variant where appropriate.
     pub ligate_short: bool,
@@ -32,6 +45,10 @@ impl TengwarCfg {
         Self {
             alt_a: false,
             alt_rince: true,
+            dot_plain: false,
+            elide_a: false,
+            keep_a_init: false,
+            keep_a_long: false,
             ligate_short: false,
             ligate_zwj: 0,
             nuquerna: true,
@@ -45,6 +62,10 @@ impl From<TengwarCfg> for TranscriberSettings {
         Self {
             alt_a: value.alt_a,
             alt_rince: value.alt_rince,
+            dot_plain: value.dot_plain,
+            elide_a: value.elide_a,
+            keep_a_init: value.keep_a_init,
+            keep_a_long: value.keep_a_long,
             ligate_short: value.ligate_short,
             ligate_zwj: value.ligate_zwj,
             nuquerna: value.nuquerna,
@@ -74,5 +95,15 @@ impl From<TengwarVowel> for VowelStyle {
             TengwarVowel::Doubled => Self::Doubled,
             TengwarVowel::Unique => Self::Unique,
         }
+    }
+}
+
+
+#[no_mangle]
+pub extern "C" fn tw_vowel_cycle(vowel: TengwarVowel) -> TengwarVowel {
+    match vowel {
+        TengwarVowel::Separate => TengwarVowel::Doubled,
+        TengwarVowel::Doubled => TengwarVowel::Unique,
+        TengwarVowel::Unique => TengwarVowel::Separate,
     }
 }

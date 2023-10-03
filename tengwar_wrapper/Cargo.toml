@@ -12,4 +12,4 @@ crate-type = ["staticlib"]
 cbindgen = "0.26.0"
 
 [dependencies]
-tengwar = "1.0.0"
+tengwar = "1.1.0"

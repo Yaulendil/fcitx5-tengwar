@@ -86,6 +86,8 @@ public:
 		if (cursor_ < 0) cursor_ = 0;
 		moveCandidate(-1);
 	}
+
+	void setCandidate(int idx) { cursor_ = idx; }
 private:
 	void generate() {
 		auto state = ic_->propertyFor(engine_->factory());

@@ -35,6 +35,7 @@ public:
 	std::string read_tengwar(TengwarMode mode) const;
 
 	bool active() const { return !buffer_.empty(); }
+	void set_candidate(int idx);
 	void set_mode(TengwarMode mode);
 	void keyEvent(fcitx::KeyEvent &keyEvent);
 	void updateText();
@@ -51,7 +52,6 @@ private:
 	}};
 
 	TengwarMode mode_ = TengwarMode::Classical;
-	bool preview_ = true;
 };
 
 
@@ -73,6 +73,10 @@ public:
 	auto instance() const { return instance_; }
 	std::string convert(std::string input, TengwarMode mode) const;
 	std::string mode_label(TengwarMode mode) const;
+
+	void cycle_vowel() {
+		config_.vowels = tw_vowel_cycle(config_.vowels);
+	}
 
 private:
 	fcitx::Instance *instance_;

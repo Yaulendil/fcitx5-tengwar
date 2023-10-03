@@ -14,6 +14,17 @@ std::string TengwarState::read_tengwar(TengwarMode mode) const {
 }
 
 
+void TengwarState::set_candidate(int idx) {
+	auto &panel = ic_->inputPanel();
+
+	if (auto candidateList = panel.candidateList()) {
+		auto &list1 = *candidateList;
+		auto &list2 = static_cast<TengwarCandidateList&>(list1);
+		list2.setCandidate(idx);
+	}
+}
+
+
 void TengwarState::set_mode(TengwarMode mode) { mode_ = mode; }
 
 
@@ -26,14 +37,10 @@ void TengwarState::keyEvent(fcitx::KeyEvent &event) {
 		auto &list1 = *candidateList;
 		auto &list2 = static_cast<TengwarCandidateList&>(list1);
 
-		// int idx = key.keyListIndex(selectionKeys);
-		// if (0 <= idx && idx < candidateList->size()) {
-		// 	event.accept();
-		// 	candidateList->candidate(idx).select(ic_);
-		// 	return;
-		// }
-
-		if (key.checkKeyList(cfg.defaultPrevCandidate())) {
+		if (
+			key.check(FcitxKey_Up)
+			|| key.checkKeyList(cfg.defaultPrevCandidate())
+		) {
 			if (auto *movable = candidateList->toCursorMovable()) {
 				event.accept();
 				movable->prevCandidate();
@@ -46,7 +53,10 @@ void TengwarState::keyEvent(fcitx::KeyEvent &event) {
 			return event.filterAndAccept();
 		}
 	
-		if (key.checkKeyList(cfg.defaultNextCandidate())) {
+		if (
+			key.check(FcitxKey_Down)
+			|| key.checkKeyList(cfg.defaultNextCandidate())
+		) {
 			if (auto *movable = candidateList->toCursorMovable()) {
 				event.accept();
 				movable->nextCandidate();
@@ -94,65 +104,83 @@ void TengwarState::keyEvent(fcitx::KeyEvent &event) {
 			return event.filterAndAccept();
 		}
 
+		if (key.check(FcitxKey_space)) {
+			ic_->commitString(read_tengwar());
+
+			reset();
+			return;
+		}
+
 		if (key.check(FcitxKey_Escape)) {
 			reset();
 			return event.filterAndAccept();
 		}
 
 		//  MODE SWITCHING:
-		if (key.check(FcitxKey_F5)) {
-			preview_ = false;
+		if (key.check(FcitxKey_F1)) {
+			mode_ = TengwarMode::Classical;
+			updateUI();
+			set_candidate(0);
+			return event.filterAndAccept();
+		}
+		if (key.check(FcitxKey_F2)) {
+			mode_ = TengwarMode::Gondor;
+			updateUI();
+			set_candidate(1);
+			return event.filterAndAccept();
+		}
+		if (key.check(FcitxKey_F3)) {
+			mode_ = TengwarMode::Beleriand;
+			updateUI();
+			set_candidate(2);
+			return event.filterAndAccept();
+		}
+		// if (key.check(FcitxKey_F4)) {
+		// 	mode_ = TengwarMode::General;
+		//
+		// 	updateUI();
+		// 	set_candidate(3);
+		// 	return event.filterAndAccept();
+		// }
 
+		//  CONFIG OPTIONS:
+		if (key.check(FcitxKey_F5)) {
+			engine_->cycle_vowel();
 			updateUI();
 			return event.filterAndAccept();
 		}
 		if (key.check(FcitxKey_F6)) {
-			mode_ = TengwarMode::Classical;
-			preview_ = true;
-
+			engine_->config_.nuquerna = !engine_->config_.nuquerna;
 			updateUI();
 			return event.filterAndAccept();
 		}
 		if (key.check(FcitxKey_F7)) {
-			mode_ = TengwarMode::Gondor;
-			preview_ = true;
-
+			engine_->config_.alt_rince = !engine_->config_.alt_rince;
 			updateUI();
 			return event.filterAndAccept();
 		}
 		if (key.check(FcitxKey_F8)) {
-			mode_ = TengwarMode::Beleriand;
-			preview_ = true;
-
+			engine_->config_.alt_a = !engine_->config_.alt_a;
 			updateUI();
 			return event.filterAndAccept();
 		}
-
-		//  CONFIG OPTIONS:
 		if (key.check(FcitxKey_F9)) {
-			// engine_->config_.alt_a = !engine_->config_.alt_a;
-			engine_->config_.nuquerna = !engine_->config_.nuquerna;
-
+			engine_->config_.elide_a = !engine_->config_.elide_a;
 			updateUI();
 			return event.filterAndAccept();
 		}
 		if (key.check(FcitxKey_F10)) {
-			engine_->config_.alt_rince = !engine_->config_.alt_rince;
-
+			engine_->config_.dot_plain = !engine_->config_.dot_plain;
 			updateUI();
 			return event.filterAndAccept();
 		}
 		if (key.check(FcitxKey_F11)) {
-			engine_->config_.ligate_short = !engine_->config_.ligate_short;
-
+			engine_->config_.keep_a_init = !engine_->config_.keep_a_init;
 			updateUI();
 			return event.filterAndAccept();
 		}
 		if (key.check(FcitxKey_F12)) {
-			// engine_->config_.cycle_vowel();
-			engine_->config_.ligate_zwj += 1;
-			engine_->config_.ligate_zwj %= 4;
-		
+			engine_->config_.keep_a_long = !engine_->config_.keep_a_long;
 			updateUI();
 			return event.filterAndAccept();
 		}
@@ -183,12 +211,9 @@ void TengwarState::updateText() {
 			aux_text += " [" + current.tw_mode_label() + "]";
 			pre_text = current.tw_text();
 
-		} else if (preview_) {
+		} else {
 			aux_text += " [" + current_mode() + "]";
 			pre_text = read_tengwar();
-
-		} else {
-			pre_text = input;
 		}
 
 		if (ic_->capabilityFlags().test(fcitx::CapabilityFlag::Preedit)) {

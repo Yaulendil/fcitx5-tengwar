@@ -21,6 +21,15 @@ struct TengwarCfg {
   /// If this is `true`, Sa-Rinci at the ends of words will use the alternate
   ///     form where appropriate.
   bool alt_rince;
+  /// If this is `true`, any tengwa that does not carry a tehta will be marked
+  ///     with a dot.
+  bool dot_plain;
+  /// If this is `true`, the A-tehta will not be used.
+  bool elide_a;
+  /// If this is `true`, the A-tehta will not be elided initially.
+  bool keep_a_init;
+  /// If this is `true`, the A-tehta will not be elided when long.
+  bool keep_a_long;
   /// If this is `true`, the short carrier will be replaced by its ligating
   ///     variant where appropriate.
   bool ligate_short;
@@ -45,5 +54,7 @@ char *tw_conv_classical(const char *ptr, const TengwarCfg *cfg);
 char *tw_conv_gondor(const char *ptr, const TengwarCfg *cfg);
 
 void tw_free(char *ptr);
+
+TengwarVowel tw_vowel_cycle(TengwarVowel vowel);
 
 } // extern "C"
